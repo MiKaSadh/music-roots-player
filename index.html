@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>100年を一周する</title>
+<style>
+/* Layout: 左に年代の目次、中央に「再生中」と年代順の曲リスト、下に再生バー。音楽アプリの定番の配置 */
+:root{
+  --bg:#0f0f0f; --side:#000000; --surface:#181818; --raise:#242424; --line:#2a2a2a;
+  --fg:#f2f2f2; --muted:#a3a3a3; --accent:#8b5cf6; --accent-fg:#ffffff;
+  --fam-blues:#6f9fe0; --fam-soul:#e07a94; --fam-rock:#d9a155; --fam-hiphop:#57b98d; --fam-elec:#a98bf0; --fam-carib:#4fb6c2;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#fafafa; --side:#f0f0f0; --surface:#ffffff; --raise:#ececec; --line:#e2e2e2;
+    --fg:#161616; --muted:#666666; --accent:#7c3aed; --accent-fg:#ffffff;
+    --fam-blues:#3a6ab5; --fam-soul:#b8445e; --fam-rock:#996611; --fam-hiphop:#1f7d55; --fam-elec:#6d3fc0; --fam-carib:#15757f;
+    color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#fafafa; --side:#f0f0f0; --surface:#ffffff; --raise:#ececec; --line:#e2e2e2;
+  --fg:#161616; --muted:#666666; --accent:#7c3aed; --accent-fg:#ffffff;
+  --fam-blues:#3a6ab5; --fam-soul:#b8445e; --fam-rock:#996611; --fam-hiphop:#1f7d55; --fam-elec:#6d3fc0; --fam-carib:#15757f;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font:14px/1.6 var(--sans);overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+img{display:block;max-width:100%}
+
+.app{height:100%;display:grid;grid-template-columns:232px minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
+
+/* ---- 左：年代の目次 ---- */
+.side{grid-row:1;background:var(--side);padding:20px 12px;overflow-y:auto;display:flex;flex-direction:column;gap:20px}
+.brand{padding:0 8px}
+.brand h1{margin:0;font-size:18px;font-weight:700;letter-spacing:-.01em}
+.brand p{margin:2px 0 0;font-size:12px;color:var(--muted)}
+.dec{display:grid;gap:2px}
+.dec button{display:flex;justify-content:space-between;align-items:baseline;width:100%;text-align:left;padding:7px 10px;border-radius:6px;color:var(--muted);font-weight:500}
+.dec button:hover{background:var(--raise);color:var(--fg)}
+.dec button.on{color:var(--fg);background:var(--raise)}
+.dec small{font:400 11px var(--mono);color:var(--muted)}
+.side .more{margin-top:auto;padding:0 8px;font-size:12px;color:var(--muted);display:grid;gap:6px}
+.side .more a{text-decoration:none;border-bottom:1px solid var(--line)}
+.side .more a:hover{color:var(--fg)}
+
+/* ---- 中央 ---- */
+.main{grid-row:1;overflow-y:auto;min-width:0}
+.wrap{max-width:1040px;margin:0 auto;padding:28px max(24px,env(safe-area-inset-right,0px)) 40px max(24px,env(safe-area-inset-left,0px))}
+
+.now{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;align-items:end;padding-bottom:28px;border-bottom:1px solid var(--line)}
+.now .cover{width:220px;aspect-ratio:1;border-radius:6px;object-fit:cover;background:var(--raise);box-shadow:0 12px 40px rgba(0,0,0,.45)}
+.now .meta{min-width:0;display:grid;gap:10px}
+.eyebrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:12px;color:var(--muted)}
+.eyebrow .yr{font:600 13px var(--mono);color:var(--fg)}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--fg)}
+.tag i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.now h2{margin:0;font-size:clamp(26px,4.2vw,44px);line-height:1.1;font-weight:800;letter-spacing:-.025em;text-wrap:balance}
+.who{display:flex;align-items:center;gap:10px;font-weight:600}
+.avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;object-position:center 20%;background:var(--raise);flex:0 0 auto}
+.who .album{color:var(--muted);font-weight:400}
+.now .note{margin:0;max-width:60ch;color:var(--fg);font-size:15px;line-height:1.7}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin-top:4px}
+.big{display:inline-flex;align-items:center;gap:10px;background:var(--accent);color:var(--accent-fg);border-radius:999px;padding:12px 22px;font-weight:700}
+.big:hover{filter:brightness(1.1)}
+.big svg{width:18px;height:18px}
+.sum{font-size:12px;color:var(--muted)}
+
+.decade{padding-top:28px;scroll-margin-top:8px}
+.decade h3{margin:0;font-size:22px;font-weight:800;letter-spacing:-.02em}
+.decade .cap{margin:2px 0 12px;color:var(--muted);font-size:13px;max-width:70ch}
+.list{list-style:none;margin:0;padding:0;display:grid}
+.row{display:grid;grid-template-columns:32px 48px minmax(0,1fr) auto 52px;gap:14px;align-items:center;padding:8px 10px;border-radius:6px;cursor:pointer}
+.row:hover{background:var(--raise)}
+.row.on{background:var(--raise)}
+.row .n{font:400 13px var(--mono);color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.row.on .n{color:var(--accent)}
+.row img{width:48px;height:48px;border-radius:4px;object-fit:cover;background:var(--raise)}
+.row .t{min-width:0}
+.row .t b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row.on .t b{color:var(--accent)}
+.row .t span{display:block;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .y{font:400 13px var(--mono);color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.bars{display:none;gap:2px;align-items:flex-end;height:14px;justify-content:flex-end}
+.bars i{width:3px;background:var(--accent);animation:eq 1s ease-in-out infinite}
+.bars i:nth-child(2){animation-delay:-.3s}.bars i:nth-child(3){animation-delay:-.6s}
+@keyframes eq{0%,100%{height:4px}50%{height:14px}}
+.playing .row.on .num{display:none}
+.playing .row.on .bars{display:flex}
+.paused .bars i{animation-play-state:paused}
+
+.credits{margin-top:40px;font-size:12px;color:var(--muted)}
+.credits summary{cursor:pointer}
+.credits ul{columns:2 240px;padding-left:1.2em}
+
+/* ---- 下：再生バー ---- */
+.bar{grid-column:1/-1;grid-row:2;background:var(--side);border-top:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(0,1fr);gap:16px;align-items:center;padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.bar .cur{display:flex;align-items:center;gap:12px;min-width:0}
+.bar .cur img{width:52px;height:52px;border-radius:4px;object-fit:cover;background:var(--raise);flex:0 0 auto}
+.bar .cur div{min-width:0}
+.bar .cur b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .cur span{display:block;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctl{display:grid;gap:6px;justify-items:center}
+.btns{display:flex;align-items:center;gap:20px}
+.btns button{color:var(--muted);display:grid;place-items:center}
+.btns button:hover{color:var(--fg)}
+.btns svg{width:20px;height:20px}
+.btns .pp{width:38px;height:38px;border-radius:50%;background:var(--fg);color:var(--bg)}
+.btns .pp:hover{color:var(--bg);transform:scale(1.05)}
+.btns .pp svg{width:16px;height:16px}
+.btns .loop.on{color:var(--accent)}
+.prog{display:flex;align-items:center;gap:8px;width:100%;max-width:520px;font:400 11px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.track{flex:1;height:4px;border-radius:2px;background:var(--line);position:relative;cursor:pointer}
+.track i{position:absolute;inset:0 auto 0 0;width:0;border-radius:2px;background:var(--fg)}
+.track:hover i{background:var(--accent)}
+.bar .right{display:flex;justify-content:flex-end;align-items:center;gap:12px;font-size:12px;color:var(--muted)}
+.bar .right a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:4px 10px;white-space:nowrap}
+.bar .right a:hover{color:var(--fg);border-color:var(--muted)}
+
+/* 広い画面：再生中を右の列に固定して、リストをスクロールしても写真と解説が見えるようにする */
+.app.wide{grid-template-columns:232px minmax(0,1fr) 340px}
+.app.wide .now{grid-column:3;grid-row:1;overflow-y:auto;background:var(--side);border-bottom:0;border-left:1px solid var(--line);padding:24px 20px;display:flex;flex-direction:column;gap:16px;align-items:stretch}
+.app.wide .now .cover{width:100%}
+.app.wide .now h2{font-size:28px}
+.app.wide .now .note{font-size:14px}
+.acard{display:none;margin:8px 0 0;border-radius:8px;overflow:hidden;background:var(--surface);position:relative}
+.acard img{width:100%;aspect-ratio:4/3;object-fit:cover;object-position:center 22%;background:var(--raise)}
+.acard figcaption{position:absolute;left:0;right:0;bottom:0;padding:28px 14px 12px;background:linear-gradient(transparent,rgba(0,0,0,.72));color:#fff;display:grid}
+.acard small{font-size:11px;opacity:.8}
+.acard b{font-size:18px;letter-spacing:-.01em}
+.app.wide .acard{display:block}
+.acard[hidden]{display:none!important}
+.app.wide .who .avatar{display:none}
+.app.wide .wrap{padding-top:8px}
+.app.wide .decade:first-child{padding-top:20px}
+/* 狭い画面：目次を上の横スクロールに、再生中を縦積みに */
+.decbar{display:none}
+@media (max-width:820px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{display:none}
+  .decbar{display:flex;gap:6px;overflow-x:auto;padding:12px 16px 4px;scrollbar-width:none}
+  .decbar button{flex:0 0 auto;padding:6px 12px;border-radius:999px;background:var(--raise);font-size:12px;font-weight:500;color:var(--muted)}
+  .decbar button.on{background:var(--fg);color:var(--bg)}
+  .wrap{padding:16px max(16px,env(safe-area-inset-right,0px)) 32px max(16px,env(safe-area-inset-left,0px))}
+  .now{grid-template-columns:120px minmax(0,1fr);gap:16px;align-items:start}
+  .now .cover{width:120px}
+  .now .note{font-size:14px}
+  .row{grid-template-columns:24px 44px minmax(0,1fr) 40px;gap:10px;padding:8px 4px}
+  .row img{width:44px;height:44px}
+  .row .tg{display:none}
+  .bar{grid-template-columns:minmax(0,1fr) auto;gap:10px}
+  .bar .right{display:none}
+  .ctl{justify-items:end}
+  .prog{position:absolute;left:0;right:0;top:-2px;max-width:none}
+  .prog span{display:none}
+  .track{height:3px;border-radius:0}
+  .bar{position:relative}
+}
+@media (max-width:480px){
+  .now{grid-template-columns:minmax(0,1fr)}
+  .now .cover{width:min(240px,100%)}
+}
+@media (prefers-reduced-motion: reduce){.bars i{animation:none;height:10px}}
+</style>
+
+<div class="app" id="app">
+  <aside class="side" aria-label="年代">
+    <div class="brand"><h1>100年を一周する</h1><p>ブルースから現代まで、時代を変えた曲を古い順に</p></div>
+    <nav class="dec" id="dec"></nav>
+    <div class="more">
+      <a href="https://mikasadh.github.io/music-roots-graph/" target="_blank" rel="noopener">詳しく調べる：系譜グラフ版</a>
+      <span>試聴は各30秒。曲を押すとすぐ鳴ります。</span>
+    </div>
+  </aside>
+
+  <main class="main" id="main">
+    <div class="decbar" id="decbar" aria-label="年代"></div>
+    <div class="wrap">
+      <section class="now" aria-live="polite">
+        <img class="cover" id="nowCover" alt="">
+        <div class="meta">
+          <div class="eyebrow"><span class="yr" id="nowYear"></span><span class="tag" id="nowTag"></span><span id="nowPos"></span></div>
+          <h2 id="nowTitle"></h2>
+          <div class="who"><img class="avatar" id="nowPhoto" alt=""><span><span id="nowArtist"></span> <span class="album" id="nowAlbum"></span></span></div>
+          <p class="note" id="nowNote"></p>
+          <div class="actions">
+            <button class="big" id="startBtn" type="button"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg><span id="startLabel">最初から通して聴く</span></button>
+            <span class="sum" id="sum"></span>
+          </div>
+          <figure class="acard" id="acard"><img id="nowPhotoBig" alt=""><figcaption><small>アーティスト</small><b id="acardName"></b></figcaption></figure>
+        </div>
+      </section>
+      <div id="decades"></div>
+      <details class="credits">
+        <summary>音源と写真の出典</summary>
+        <p>ジャケット写真と30秒の試聴音源は Apple の iTunes Search API から取得しています。アーティスト写真は Wikipedia（Wikimedia Commons）の各記事の画像です。</p>
+        <ul id="credits"></ul>
+      </details>
+    </div>
+  </main>
+
+  <footer class="bar">
+    <div class="cur"><img id="barCover" alt=""><div><b id="barTitle">—</b><span id="barArtist"></span></div></div>
+    <div class="ctl">
+      <div class="btns">
+        <button id="prevBtn" type="button" aria-label="前の曲"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM20 5.5v13a.5.5 0 0 1-.78.42L9.5 12.42a.5.5 0 0 1 0-.84l9.72-6.5a.5.5 0 0 1 .78.42z"/></svg></button>
+        <button class="pp" id="ppBtn" type="button" aria-label="再生"><svg id="ppIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg></button>
+        <button id="nextBtn" type="button" aria-label="次の曲"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM4 5.5v13a.5.5 0 0 0 .78.42l9.72-6.5a.5.5 0 0 0 0-.84L4.78 5.08A.5.5 0 0 0 4 5.5z"/></svg></button>
+        <button class="loop on" id="autoBtn" type="button" aria-pressed="true" aria-label="終わったら次の曲へ進む" title="終わったら次の曲へ進む"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg></button>
+      </div>
+      <div class="prog"><span id="tCur">0:00</span><div class="track" id="seek" role="slider" aria-label="再生位置" tabindex="0"><i id="fill"></i></div><span id="tDur">0:30</span></div>
+    </div>
+    <div class="right"><a id="appleLink" href="#" target="_blank" rel="noopener">Apple Musicで全曲</a></div>
+  </footer>
+</div>
+<audio id="au" preload="none"></audio>
+
+<script src="data.js"></script>
+<script>
+(function(){
+'use strict';
+const T=window.TRACKS||[];
+// ジャンルの表示名と色の系統（系譜グラフ版と同じ6系統）
+const G={blues:['ブルース','blues'],jazz:['ジャズ','blues'],delta:['デルタ・ブルース','blues'],jump:['ジャンプ・ブルース','blues'],rnb:['R&B','blues'],chicago:['シカゴ・ブルース','blues'],
+  gospel:['ゴスペル','soul'],soul:['ソウル','soul'],southern:['サザン・ソウル','soul'],motown:['モータウン','soul'],funk:['ファンク','soul'],disco:['ディスコ','soul'],crnb:['R&B（現代）','soul'],neosoul:['ネオソウル','soul'],
+  rockabilly:['ロカビリー','rock'],rocknroll:['ロックンロール','rock'],bluesrock:['ブルースロック','rock'],hardrock:['ハードロック','rock'],metal:['ヘヴィメタル','rock'],
+  hiphop:['ヒップホップ','hiphop'],house:['ハウス','elec'],techno:['テクノ','elec'],reggae:['レゲエ','carib']};
+// 各年代の一行の見取り図
+const CAP={1920:'南部のブルースと、ニューオーリンズのジャズ。レコードに音楽が刻まれ始めた時代。',
+  1930:'デルタのギター弾き語りが頂点へ。',
+  1940:'戦争と大移動。少人数で踊らせる音楽と、教会の歌のレコード化。',
+  1950:'電気とラジオ。ブルースが都会で増幅され、十代のロックンロールが生まれる。',
+  1960:'ソウルの10年。英国の若者がブルースを持ち帰り、ロックが巨大化する。',
+  1970:'リズムが主役に。ファンク、レゲエ、ディスコ、そして電子音。',
+  1980:'ドラムマシンとサンプラー。ヒップホップ、ハウス、テクノが生まれる。',
+  1990:'ヒップホップの黄金時代と、生演奏の質感に戻るネオソウル。',
+  2000:'70年代ソウルの手触りと、ヒップホップのビートの融合。',
+  2010:'ジャンルの境界が溶け、100年分の系譜を素材にする時代。'};
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const au=$('au');
+let cur=0,auto=true;
+
+// 年代ごとに並べる
+const decs=[];T.forEach((t,i)=>{const d=Math.floor(t.y/10)*10;let g=decs.find(x=>x.d===d);if(!g){g={d,items:[]};decs.push(g);}g.items.push(i);});
+const tag=t=>{const g=G[t.g]||[t.g,'blues'];return '<span class="tag" style="--c:var(--fam-'+g[1]+')"><i></i>'+esc(g[0])+'</span>';};
+const PLAY='<path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/>';
+const PAUSE='<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';
+
+$('decades').innerHTML=decs.map(g=>'<section class="decade" id="d'+g.d+'"><h3>'+g.d+'年代</h3><p class="cap">'+esc(CAP[g.d]||'')+'</p><ol class="list">'+
+  g.items.map(i=>{const t=T[i];return '<li class="row" data-i="'+i+'" tabindex="0" aria-label="'+esc(t.track+'、'+t.artist+'、'+t.y+'年')+'">'+
+    '<span class="n"><span class="num">'+(i+1)+'</span><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span></span>'+
+    '<img loading="lazy" src="'+esc(t.cover)+'" alt="">'+
+    '<span class="t"><b>'+esc(t.track)+'</b><span>'+esc(t.artist)+'</span></span>'+
+    '<span class="tg">'+tag(t)+'</span><span class="y">'+t.y+'</span></li>';}).join('')+'</ol></section>').join('');
+const decBtns=decs.map(g=>'<button type="button" data-d="'+g.d+'">'+g.d+'年代<small>'+g.items.length+'</small></button>').join('');
+$('dec').innerHTML=decBtns;
+$('decbar').innerHTML=decs.map(g=>'<button type="button" data-d="'+g.d+'">'+g.d+'s</button>').join('');
+$('sum').textContent=T.length+'曲 ・ 約'+Math.round(T.length*30/60)+'分（各30秒の試聴）';
+$('credits').innerHTML=T.filter((t,i,a)=>a.findIndex(x=>x.wiki===t.wiki)===i).map(t=>'<li><a href="'+esc(t.wikiPage)+'" target="_blank" rel="noopener">'+esc(t.artist)+'</a></li>').join('');
+
+function show(i){
+  const t=T[i];cur=i;
+  $('nowCover').src=t.cover;$('nowCover').alt=t.album+' のジャケット';
+  $('nowYear').textContent=t.y;$('nowTag').outerHTML='<span class="tag" id="nowTag" style="--c:var(--fam-'+(G[t.g]||[0,'blues'])[1]+')"><i></i>'+esc((G[t.g]||[t.g])[0])+'</span>';
+  $('nowPos').textContent=(i+1)+' / '+T.length;
+  $('nowTitle').textContent=t.track;
+  $('nowArtist').textContent=t.artist;$('nowAlbum').textContent='・ '+t.album;
+  const ph=$('nowPhoto');ph.style.visibility=t.photo?'visible':'hidden';if(t.photo){ph.src=t.photo;ph.alt=t.artist+' の写真';}
+  $('nowNote').textContent=t.note;
+  const big=$('nowPhotoBig');$('acard').hidden=!t.photo;if(t.photo){big.src=t.photo;big.alt=t.artist+' の写真';}$('acardName').textContent=t.artist;
+  $('barCover').src=t.cover;$('barTitle').textContent=t.track;$('barArtist').textContent=t.artist+' ・ '+t.y;
+  $('appleLink').href=t.apple;
+  document.querySelectorAll('.row.on').forEach(r=>r.classList.remove('on'));
+  const row=document.querySelector('.row[data-i="'+i+'"]');if(row)row.classList.add('on');
+  const d=Math.floor(t.y/10)*10;
+  document.querySelectorAll('[data-d]').forEach(b=>b.classList.toggle('on',+b.dataset.d===d));
+  $('startLabel').textContent=i===0?'最初から通して聴く':'ここから通して聴く';
+}
+function play(i){
+  if(i<0||i>=T.length)return;
+  if(i!==cur||!au.src){show(i);au.src=T[i].preview;}
+  au.play().catch(()=>{});
+  const row=document.querySelector('.row[data-i="'+i+'"]');
+  if(row){const r=row.getBoundingClientRect(),m=$('main').getBoundingClientRect();if(r.top<m.top||r.bottom>m.bottom-8)row.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}
+}
+function toggle(){ if(!au.src){play(cur);return;} au.paused?au.play().catch(()=>{}):au.pause(); }
+
+au.addEventListener('play',()=>{$('app').classList.add('playing');$('app').classList.remove('paused');$('ppIcon').innerHTML=PAUSE;$('ppBtn').setAttribute('aria-label','一時停止');});
+au.addEventListener('pause',()=>{$('app').classList.add('paused');$('ppIcon').innerHTML=PLAY;$('ppBtn').setAttribute('aria-label','再生');});
+au.addEventListener('ended',()=>{ if(auto&&cur<T.length-1)play(cur+1); else{$('app').classList.remove('playing');} });
+const fmt=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+au.addEventListener('timeupdate',()=>{const d=au.duration||30;$('fill').style.width=(au.currentTime/d*100)+'%';$('tCur').textContent=fmt(au.currentTime);$('tDur').textContent=fmt(d);});
+
+document.getElementById('decades').addEventListener('click',e=>{const r=e.target.closest('.row');if(!r)return;const i=+r.dataset.i;if(i===cur&&au.src)toggle();else play(i);});
+document.getElementById('decades').addEventListener('keydown',e=>{if(e.key!=='Enter')return;const r=e.target.closest('.row');if(r){e.preventDefault();play(+r.dataset.i);}});
+$('startBtn').addEventListener('click',()=>play(cur));
+$('ppBtn').addEventListener('click',toggle);
+$('prevBtn').addEventListener('click',()=>{ if(au.currentTime>3){au.currentTime=0;} else play(Math.max(0,cur-1)); });
+$('nextBtn').addEventListener('click',()=>play(Math.min(T.length-1,cur+1)));
+$('autoBtn').addEventListener('click',()=>{auto=!auto;$('autoBtn').classList.toggle('on',auto);$('autoBtn').setAttribute('aria-pressed',auto);});
+$('seek').addEventListener('click',e=>{const r=e.currentTarget.getBoundingClientRect();if(au.duration)au.currentTime=(e.clientX-r.left)/r.width*au.duration;});
+$('seek').addEventListener('keydown',e=>{if(!au.duration)return;if(e.key==='ArrowRight')au.currentTime=Math.min(au.duration,au.currentTime+5);if(e.key==='ArrowLeft')au.currentTime=Math.max(0,au.currentTime-5);});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(!b)return;const s=$('d'+b.dataset.d);if(s)s.scrollIntoView({block:'start',behavior:'smooth'});});
+document.addEventListener('keydown',e=>{
+  if(e.target.closest('input,textarea'))return;
+  if(e.code==='Space'&&!e.target.closest('button,.row')){e.preventDefault();toggle();}
+});
+
+// 広い画面では「再生中」を右の列へ、狭い画面ではリストの上へ移す
+const np=document.querySelector(".now"),wrap=document.querySelector(".wrap"),app=$("app"),mq=matchMedia("(min-width:1100px)");
+function place(){ if(mq.matches){app.classList.add("wide");app.insertBefore(np,document.querySelector(".bar"));} else {app.classList.remove("wide");wrap.prepend(np);} }
+mq.addEventListener("change",place);place();
+show(0);
+})();
+</script>
