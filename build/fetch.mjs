@@ -60,7 +60,9 @@ for (const t of tracks) {
     Object.assign(rec, {
       track: c.trackName, album: c.collectionName, artistLabel: c.artistName,
       cover: (c.artworkUrl100 || '').replace('100x100bb', '600x600bb'),
-      preview: c.previewUrl, apple: c.trackViewUrl, release: (c.releaseDate || '').slice(0, 10)
+      preview: c.previewUrl, apple: c.trackViewUrl, release: (c.releaseDate || '').slice(0, 10),
+      // アルバム画面・アーティスト画面を iTunes で引くための ID
+      itTrack: c.trackId, itAlbum: c.collectionId, itArtist: c.artistId
     });
   }
   rec.photo = w && w.photo; rec.wikiPage = w && w.page;

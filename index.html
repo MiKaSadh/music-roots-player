@@ -4,10 +4,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>100年を一周する</title>
 <style>
-/* Layout: 左に年代の目次、中央に「再生中」と年代順の曲リスト、下に再生バー。音楽アプリの定番の配置 */
+/* Layout: 左に年代の目次、中央に「年代順の曲／アルバム／アーティスト」の画面、右に再生中、下に再生バー */
 :root{
   --bg:#0f0f0f; --side:#000000; --surface:#181818; --raise:#242424; --line:#2a2a2a;
-  --fg:#f2f2f2; --muted:#a3a3a3; --accent:#8b5cf6; --accent-fg:#ffffff;
+  --fg:#f2f2f2; --muted:#a3a3a3; --accent:#8b5cf6; --accent-fg:#ffffff; --like:#e85d8a;
   --fam-blues:#6f9fe0; --fam-soul:#e07a94; --fam-rock:#d9a155; --fam-hiphop:#57b98d; --fam-elec:#a98bf0; --fam-carib:#4fb6c2;
   --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
@@ -16,14 +16,14 @@
 @media (prefers-color-scheme: light){
   :root:not([data-theme="dark"]){
     --bg:#fafafa; --side:#f0f0f0; --surface:#ffffff; --raise:#ececec; --line:#e2e2e2;
-    --fg:#161616; --muted:#666666; --accent:#7c3aed; --accent-fg:#ffffff;
+    --fg:#161616; --muted:#666666; --accent:#7c3aed; --accent-fg:#ffffff; --like:#c8366a;
     --fam-blues:#3a6ab5; --fam-soul:#b8445e; --fam-rock:#996611; --fam-hiphop:#1f7d55; --fam-elec:#6d3fc0; --fam-carib:#15757f;
     color-scheme:light;
   }
 }
 :root[data-theme="light"]{
   --bg:#fafafa; --side:#f0f0f0; --surface:#ffffff; --raise:#ececec; --line:#e2e2e2;
-  --fg:#161616; --muted:#666666; --accent:#7c3aed; --accent-fg:#ffffff;
+  --fg:#161616; --muted:#666666; --accent:#7c3aed; --accent-fg:#ffffff; --like:#c8366a;
   --fam-blues:#3a6ab5; --fam-soul:#b8445e; --fam-rock:#996611; --fam-hiphop:#1f7d55; --fam-elec:#6d3fc0; --fam-carib:#15757f;
   color-scheme:light;
 }
@@ -34,26 +34,40 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 a{color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 img{display:block;max-width:100%}
+[hidden]{display:none!important}
 
 .app{height:100%;display:grid;grid-template-columns:232px minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
 
-/* ---- 左：年代の目次 ---- */
+/* ---- 左：年代の目次とアカウント ---- */
 .side{grid-row:1;background:var(--side);padding:20px 12px;overflow-y:auto;display:flex;flex-direction:column;gap:20px}
 .brand{padding:0 8px}
 .brand h1{margin:0;font-size:18px;font-weight:700;letter-spacing:-.01em}
+.brand h1 button{text-align:left}
 .brand p{margin:2px 0 0;font-size:12px;color:var(--muted)}
 .dec{display:grid;gap:2px}
 .dec button{display:flex;justify-content:space-between;align-items:baseline;width:100%;text-align:left;padding:7px 10px;border-radius:6px;color:var(--muted);font-weight:500}
 .dec button:hover{background:var(--raise);color:var(--fg)}
 .dec button.on{color:var(--fg);background:var(--raise)}
 .dec small{font:400 11px var(--mono);color:var(--muted)}
-.side .more{margin-top:auto;padding:0 8px;font-size:12px;color:var(--muted);display:grid;gap:6px}
+.acct{margin-top:auto;padding:12px;border-radius:8px;background:var(--surface);display:grid;gap:8px;font-size:12px;color:var(--muted)}
+.acct b{color:var(--fg);font-size:13px}
+.side .more{padding:0 8px;font-size:12px;color:var(--muted);display:grid;gap:6px}
 .side .more a{text-decoration:none;border-bottom:1px solid var(--line)}
 .side .more a:hover{color:var(--fg)}
+.pill{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;padding:8px 14px;font-weight:600;font-size:13px;border:1px solid var(--line);white-space:nowrap;text-decoration:none}
+.pill:hover{border-color:var(--muted)}
+.pill.solid{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.pill.solid:hover{filter:brightness(1.1)}
+.pill[disabled]{opacity:.5;cursor:default}
 
 /* ---- 中央 ---- */
-.main{grid-row:1;overflow-y:auto;min-width:0}
-.wrap{max-width:1040px;margin:0 auto;padding:28px max(24px,env(safe-area-inset-right,0px)) 40px max(24px,env(safe-area-inset-left,0px))}
+.main{grid-row:1;overflow-y:auto;min-width:0;position:relative}
+.wrap{max-width:1040px;margin:0 auto;padding:20px max(24px,env(safe-area-inset-right,0px)) 40px max(24px,env(safe-area-inset-left,0px))}
+.topnav{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:10px max(24px,env(safe-area-inset-left,0px));background:var(--bg);border-bottom:1px solid var(--line)}
+.topnav button{display:inline-flex;align-items:center;gap:6px;font-weight:600;color:var(--muted)}
+.topnav button:hover{color:var(--fg)}
+.topnav svg{width:18px;height:18px}
+.topnav .crumb{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 
 .now{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;align-items:end;padding-bottom:28px;border-bottom:1px solid var(--line)}
 .now .cover{width:220px;aspect-ratio:1;border-radius:6px;object-fit:cover;background:var(--raise);box-shadow:0 12px 40px rgba(0,0,0,.45)}
@@ -62,9 +76,12 @@ img{display:block;max-width:100%}
 .eyebrow .yr{font:600 13px var(--mono);color:var(--fg)}
 .tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--fg)}
 .tag i{width:8px;height:8px;border-radius:50%;background:var(--c)}
-.now h2{margin:0;font-size:clamp(26px,4.2vw,44px);line-height:1.1;font-weight:800;letter-spacing:-.025em;text-wrap:balance}
-.who{display:flex;align-items:center;gap:10px;font-weight:600}
+.titleline{display:flex;align-items:flex-start;gap:12px}
+.now h2{margin:0;font-size:clamp(26px,4.2vw,44px);line-height:1.1;font-weight:800;letter-spacing:-.025em;text-wrap:balance;min-width:0;flex:1}
+.who{display:flex;align-items:center;gap:6px 10px;font-weight:600;flex-wrap:wrap}
 .avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;object-position:center 20%;background:var(--raise);flex:0 0 auto}
+.link{font-weight:inherit;text-align:left}
+.link:hover{text-decoration:underline}
 .who .album{color:var(--muted);font-weight:400}
 .now .note{margin:0;max-width:60ch;color:var(--fg);font-size:15px;line-height:1.7}
 .actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin-top:4px}
@@ -72,12 +89,28 @@ img{display:block;max-width:100%}
 .big:hover{filter:brightness(1.1)}
 .big svg{width:18px;height:18px}
 .sum{font-size:12px;color:var(--muted)}
+.acard{display:none;margin:8px 0 0;border-radius:8px;overflow:hidden;background:var(--surface);position:relative}
+.acard button{display:block;width:100%;text-align:left}
+.acard img{width:100%;aspect-ratio:4/3;object-fit:cover;object-position:center 22%;background:var(--raise)}
+.acard figcaption{position:absolute;left:0;right:0;bottom:0;padding:28px 14px 12px;background:linear-gradient(transparent,rgba(0,0,0,.72));color:#fff;display:grid;pointer-events:none}
+.acard small{font-size:11px;opacity:.8}
+.acard b{font-size:18px;letter-spacing:-.01em}
+
+.heart{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;color:var(--muted);flex:0 0 auto}
+.heart:hover{color:var(--fg)}
+.heart svg{width:20px;height:20px}
+.heart.on{color:var(--like)}
+.heart.sm{width:30px;height:30px}
+.heart.sm svg{width:16px;height:16px}
 
 .decade{padding-top:28px;scroll-margin-top:8px}
+.dhead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 16px}
 .decade h3{margin:0;font-size:22px;font-weight:800;letter-spacing:-.02em}
+.dact{display:flex;flex-wrap:wrap;gap:8px}
+.dact .pill{padding:5px 12px;font-size:12px}
 .decade .cap{margin:2px 0 12px;color:var(--muted);font-size:13px;max-width:70ch}
 .list{list-style:none;margin:0;padding:0;display:grid}
-.row{display:grid;grid-template-columns:32px 48px minmax(0,1fr) auto 52px;gap:14px;align-items:center;padding:8px 10px;border-radius:6px;cursor:pointer}
+.row{display:grid;grid-template-columns:32px 48px minmax(0,1fr) auto 44px 36px;gap:12px;align-items:center;padding:8px 10px;border-radius:6px;cursor:pointer}
 .row:hover{background:var(--raise)}
 .row.on{background:var(--raise)}
 .row .n{font:400 13px var(--mono);color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
@@ -86,8 +119,12 @@ img{display:block;max-width:100%}
 .row .t{min-width:0}
 .row .t b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row.on .t b{color:var(--accent)}
-.row .t span{display:block;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .t .sub{display:block;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .t .sub button:hover{color:var(--fg);text-decoration:underline}
 .row .y{font:400 13px var(--mono);color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.iconbtn{width:32px;height:32px;display:grid;place-items:center;border-radius:50%;color:var(--muted)}
+.iconbtn:hover{color:var(--fg);background:var(--surface)}
+.iconbtn svg{width:18px;height:18px}
 .bars{display:none;gap:2px;align-items:flex-end;height:14px;justify-content:flex-end}
 .bars i{width:3px;background:var(--accent);animation:eq 1s ease-in-out infinite}
 .bars i:nth-child(2){animation-delay:-.3s}.bars i:nth-child(3){animation-delay:-.6s}
@@ -96,12 +133,41 @@ img{display:block;max-width:100%}
 .playing .row.on .bars{display:flex}
 .paused .bars i{animation-play-state:paused}
 
+/* アルバム画面・アーティスト画面の見出し */
+.ahead{display:grid;grid-template-columns:200px minmax(0,1fr);gap:24px;align-items:end;padding:8px 0 24px}
+.ahead .art{width:200px;aspect-ratio:1;border-radius:6px;object-fit:cover;background:var(--raise);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.ahead .art.round{border-radius:50%;object-position:center 20%}
+.ahead .info{min-width:0;display:grid;gap:8px}
+.ahead .kind{font-size:12px;font-weight:600;color:var(--muted)}
+.ahead h2{margin:0;font-size:clamp(24px,4vw,40px);line-height:1.1;font-weight:800;letter-spacing:-.025em;text-wrap:balance}
+.ahead .by{display:flex;flex-wrap:wrap;gap:4px 8px;font-size:13px;color:var(--muted)}
+.ahead .by .link{color:var(--fg);font-weight:600}
+.trk{grid-template-columns:32px minmax(0,1fr) 52px 36px}
+.trk .d{font:400 13px var(--mono);color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.trk.nopv{opacity:.45;cursor:default}
+.disc{font-size:12px;color:var(--muted);padding:12px 10px 4px}
+.tonext{margin-top:24px}
+.hintline{font-size:12px;color:var(--muted);margin:4px 0 0}
+.ahead .actions .pill{white-space:normal;text-align:left;max-width:100%}
+
+/* アーティスト画面のディスコグラフィ */
+.sec{padding-top:24px}
+.sec h3{margin:0 0 12px;font-size:20px;font-weight:800;letter-spacing:-.02em}
+.sec h3 small{font:400 12px var(--mono);color:var(--muted);margin-left:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px}
+.card{display:grid;gap:8px;padding:10px;border-radius:8px;text-align:left;align-content:start}
+.card:hover{background:var(--raise)}
+.card img{width:100%;aspect-ratio:1;border-radius:4px;object-fit:cover;background:var(--raise)}
+.card b{font-size:13px;font-weight:600;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card span{font-size:12px;color:var(--muted)}
+.loading,.empty{padding:40px 0;color:var(--muted)}
+
 .credits{margin-top:40px;font-size:12px;color:var(--muted)}
 .credits summary{cursor:pointer}
 .credits ul{columns:2 240px;padding-left:1.2em}
 
 /* ---- 下：再生バー ---- */
-.bar{grid-column:1/-1;grid-row:2;background:var(--side);border-top:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(0,1fr);gap:16px;align-items:center;padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.bar{grid-column:1/-1;grid-row:2;background:var(--side);border-top:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(0,1fr);gap:16px;align-items:center;padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));position:relative}
 .bar .cur{display:flex;align-items:center;gap:12px;min-width:0}
 .bar .cur img{width:52px;height:52px;border-radius:4px;object-fit:cover;background:var(--raise);flex:0 0 auto}
 .bar .cur div{min-width:0}
@@ -120,96 +186,118 @@ img{display:block;max-width:100%}
 .track{flex:1;height:4px;border-radius:2px;background:var(--line);position:relative;cursor:pointer}
 .track i{position:absolute;inset:0 auto 0 0;width:0;border-radius:2px;background:var(--fg)}
 .track:hover i{background:var(--accent)}
-.bar .right{display:flex;justify-content:flex-end;align-items:center;gap:12px;font-size:12px;color:var(--muted)}
-.bar .right a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:4px 10px;white-space:nowrap}
-.bar .right a:hover{color:var(--fg);border-color:var(--muted)}
+.bar .right{display:flex;justify-content:flex-end;align-items:center;gap:10px;font-size:12px;color:var(--muted);min-width:0}
+.bar .right a,.bar .right .dev{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:4px 10px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.bar .right a:hover,.bar .right .dev:hover{color:var(--fg);border-color:var(--muted)}
+.dev svg{width:14px;height:14px;flex:0 0 auto}
 
-/* 広い画面：再生中を右の列に固定して、リストをスクロールしても写真と解説が見えるようにする */
+/* 再生先の選択 */
+.devpanel{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(88px + env(safe-area-inset-bottom,0px));width:min(340px,calc(100vw - 32px));background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 16px 40px rgba(0,0,0,.45);padding:14px;z-index:20;display:grid;gap:10px}
+.devpanel h4{margin:0;font-size:14px}
+.devpanel p{margin:0;font-size:12px;color:var(--muted)}
+.devpanel ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.devpanel li button{width:100%;text-align:left;padding:8px 10px;border-radius:6px;display:flex;justify-content:space-between;gap:8px}
+.devpanel li button span{color:var(--muted);font-size:12px}
+.devpanel li button:hover{background:var(--raise)}
+.devpanel li button.on{color:var(--accent);font-weight:600}
+.devpanel .row2{display:flex;justify-content:space-between;gap:8px}
+
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translate(-50%,12px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:13px;max-width:min(520px,calc(100vw - 32px));opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:30}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* 広い画面：再生中を右の列に固定 */
 .app.wide{grid-template-columns:232px minmax(0,1fr) 340px}
 .app.wide .now{grid-column:3;grid-row:1;overflow-y:auto;background:var(--side);border-bottom:0;border-left:1px solid var(--line);padding:24px 20px;display:flex;flex-direction:column;gap:16px;align-items:stretch}
 .app.wide .now .cover{width:100%}
 .app.wide .now h2{font-size:28px}
 .app.wide .now .note{font-size:14px}
-.acard{display:none;margin:8px 0 0;border-radius:8px;overflow:hidden;background:var(--surface);position:relative}
-.acard img{width:100%;aspect-ratio:4/3;object-fit:cover;object-position:center 22%;background:var(--raise)}
-.acard figcaption{position:absolute;left:0;right:0;bottom:0;padding:28px 14px 12px;background:linear-gradient(transparent,rgba(0,0,0,.72));color:#fff;display:grid}
-.acard small{font-size:11px;opacity:.8}
-.acard b{font-size:18px;letter-spacing:-.01em}
 .app.wide .acard{display:block}
-.acard[hidden]{display:none!important}
 .app.wide .who .avatar{display:none}
-.app.wide .wrap{padding-top:8px}
-.app.wide .decade:first-child{padding-top:20px}
-/* 狭い画面：目次を上の横スクロールに、再生中を縦積みに */
-.decbar{display:none}
+.acard[hidden]{display:none!important}
+
+/* 狭い画面 */
+.mtop,.decbar,.mdev{display:none}
 @media (max-width:820px){
   .app{grid-template-columns:minmax(0,1fr)}
   .side{display:none}
+  .mtop{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px 0}
+  .mtop b{font-size:16px}
+  .mtop .pill{padding:6px 12px;font-size:12px}
   .decbar{display:flex;gap:6px;overflow-x:auto;padding:12px 16px 4px;scrollbar-width:none}
   .decbar button{flex:0 0 auto;padding:6px 12px;border-radius:999px;background:var(--raise);font-size:12px;font-weight:500;color:var(--muted)}
   .decbar button.on{background:var(--fg);color:var(--bg)}
+  .app:not(.home) .decbar{display:none}
+  .app:not(.home) .wrap>.now{display:none}
   .wrap{padding:16px max(16px,env(safe-area-inset-right,0px)) 32px max(16px,env(safe-area-inset-left,0px))}
+  .topnav{padding:10px 16px}
   .now{grid-template-columns:120px minmax(0,1fr);gap:16px;align-items:start}
   .now .cover{width:120px}
   .now .note{font-size:14px}
-  .row{grid-template-columns:24px 44px minmax(0,1fr) 40px;gap:10px;padding:8px 4px}
+  .row{grid-template-columns:24px 44px minmax(0,1fr) 40px 32px;gap:10px;padding:8px 4px}
   .row img{width:44px;height:44px}
   .row .tg{display:none}
+  .trk{grid-template-columns:24px minmax(0,1fr) 44px 32px}
+  .ahead{grid-template-columns:120px minmax(0,1fr);gap:16px;align-items:center}
+  .ahead .art{width:120px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
   .bar{grid-template-columns:minmax(0,1fr) auto;gap:10px}
   .bar .right{display:none}
+  .btns .mdev{display:grid}
   .ctl{justify-items:end}
   .prog{position:absolute;left:0;right:0;top:-2px;max-width:none}
   .prog span{display:none}
   .track{height:3px;border-radius:0}
-  .bar{position:relative}
 }
 @media (max-width:480px){
   .now{grid-template-columns:minmax(0,1fr)}
   .now .cover{width:min(240px,100%)}
 }
-@media (prefers-reduced-motion: reduce){.bars i{animation:none;height:10px}}
+@media (prefers-reduced-motion: reduce){.bars i{animation:none;height:10px}.toast{transition:none}}
 </style>
 
-<div class="app" id="app">
+<div class="app home" id="app">
   <aside class="side" aria-label="年代">
-    <div class="brand"><h1>100年を一周する</h1><p>ブルースから現代まで、時代を変えた曲を古い順に</p></div>
+    <div class="brand"><h1><button type="button" data-home>100年を一周する</button></h1><p>ブルースから現代まで、時代を変えた曲を古い順に</p></div>
     <nav class="dec" id="dec"></nav>
+    <div class="acct" id="acct" hidden></div>
     <div class="more">
       <a href="https://mikasadh.github.io/music-roots-graph/" target="_blank" rel="noopener">詳しく調べる：系譜グラフ版</a>
-      <span>試聴は各30秒。曲を押すとすぐ鳴ります。</span>
     </div>
   </aside>
 
   <main class="main" id="main">
+    <div class="mtop"><b><button type="button" data-home>100年を一周する</button></b><span id="macct"></span></div>
+    <div class="topnav" id="topnav" hidden><button type="button" id="backBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>戻る</button><span class="crumb" id="crumb"></span></div>
     <div class="decbar" id="decbar" aria-label="年代"></div>
-    <div class="wrap">
+    <div class="wrap" id="wrap">
       <section class="now" aria-live="polite">
         <img class="cover" id="nowCover" alt="">
         <div class="meta">
           <div class="eyebrow"><span class="yr" id="nowYear"></span><span class="tag" id="nowTag"></span><span id="nowPos"></span></div>
-          <h2 id="nowTitle"></h2>
-          <div class="who"><img class="avatar" id="nowPhoto" alt=""><span><span id="nowArtist"></span> <span class="album" id="nowAlbum"></span></span></div>
+          <div class="titleline"><h2 id="nowTitle"></h2><button class="heart" id="nowLike" type="button" aria-pressed="false" aria-label="お気に入りに追加" hidden></button></div>
+          <div class="who"><img class="avatar" id="nowPhoto" alt=""><button class="link" type="button" id="nowArtist"></button><button class="link album" type="button" id="nowAlbum"></button></div>
           <p class="note" id="nowNote"></p>
-          <div class="actions">
+          <div class="actions" id="nowActions">
             <button class="big" id="startBtn" type="button"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg><span id="startLabel">最初から通して聴く</span></button>
             <span class="sum" id="sum"></span>
           </div>
-          <figure class="acard" id="acard"><img id="nowPhotoBig" alt=""><figcaption><small>アーティスト</small><b id="acardName"></b></figcaption></figure>
+          <figure class="acard" id="acard"><button type="button" id="acardBtn"><img id="nowPhotoBig" alt=""></button><figcaption><small>アーティスト</small><b id="acardName"></b></figcaption></figure>
         </div>
       </section>
-      <div id="decades"></div>
+      <div id="view"></div>
       <details class="credits">
         <summary>音源と写真の出典</summary>
-        <p>ジャケット写真と30秒の試聴音源は Apple の iTunes Search API から取得しています。アーティスト写真は Wikipedia（Wikimedia Commons）の各記事の画像です。</p>
+        <p>ログインしていない時のジャケット写真・30秒の試聴音源・アルバム情報は Apple の iTunes Search API から、Spotifyにログインした時は Spotify から取得しています。年代順のリストのアーティスト写真は Wikipedia（Wikimedia Commons）の各記事の画像です。</p>
         <ul id="credits"></ul>
       </details>
     </div>
   </main>
 
   <footer class="bar">
-    <div class="cur"><img id="barCover" alt=""><div><b id="barTitle">—</b><span id="barArtist"></span></div></div>
+    <div class="cur"><img id="barCover" alt=""><div><b id="barTitle">—</b><span id="barArtist"></span></div><button class="heart sm" id="barLike" type="button" aria-label="お気に入りに追加" hidden></button></div>
     <div class="ctl">
       <div class="btns">
+        <button class="mdev" id="mdevBtn" type="button" aria-label="再生先を選ぶ" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><circle cx="12" cy="14" r="4"/><path d="M12 6h.01"/></svg></button>
         <button id="prevBtn" type="button" aria-label="前の曲"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM20 5.5v13a.5.5 0 0 1-.78.42L9.5 12.42a.5.5 0 0 1 0-.84l9.72-6.5a.5.5 0 0 1 .78.42z"/></svg></button>
         <button class="pp" id="ppBtn" type="button" aria-label="再生"><svg id="ppIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg></button>
         <button id="nextBtn" type="button" aria-label="次の曲"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM4 5.5v13a.5.5 0 0 0 .78.42l9.72-6.5a.5.5 0 0 0 0-.84L4.78 5.08A.5.5 0 0 0 4 5.5z"/></svg></button>
@@ -217,15 +305,29 @@ img{display:block;max-width:100%}
       </div>
       <div class="prog"><span id="tCur">0:00</span><div class="track" id="seek" role="slider" aria-label="再生位置" tabindex="0"><i id="fill"></i></div><span id="tDur">0:30</span></div>
     </div>
-    <div class="right"><a id="appleLink" href="#" target="_blank" rel="noopener">Apple Musicで全曲</a></div>
+    <div class="right"><button class="dev" id="devBtn" type="button" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><circle cx="12" cy="14" r="4"/><path d="M12 6h.01"/></svg><span id="devLabel">再生先</span></button><a id="appleLink" href="#" target="_blank" rel="noopener">Apple Musicで全曲</a></div>
   </footer>
 </div>
+<div class="devpanel" id="devPanel" hidden role="dialog" aria-label="再生先">
+  <h4>再生先を選ぶ</h4>
+  <p>このページの中で鳴らすか、Spotifyアプリで鳴らすかを選べます。アプリが一覧にない時は、スマホやPCでSpotifyアプリを開いてから「更新」を押してください。</p>
+  <ul id="devList"></ul>
+  <div class="row2"><button class="pill" id="devRefresh" type="button">更新</button><button class="pill" id="devClose" type="button">閉じる</button></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 <audio id="au" preload="none"></audio>
 
 <script src="data.js"></script>
 <script>
 (function(){
 'use strict';
+/* ============ 設定 ============ */
+// Spotify の開発者ダッシュボードで発行した Client ID。空のあいだは Spotify 関連の機能を出さない
+const CLIENT_ID='';
+const SCOPES=['streaming','user-read-email','user-read-private','user-read-playback-state','user-modify-playback-state',
+  'user-library-read','user-library-modify','user-follow-read','user-follow-modify','playlist-modify-private','playlist-modify-public'].join(' ');
+const REDIRECT=location.origin+location.pathname.replace(/index\.html$/,'');
+
 const T=window.TRACKS||[];
 // ジャンルの表示名と色の系統（系譜グラフ版と同じ6系統）
 const G={blues:['ブルース','blues'],jazz:['ジャズ','blues'],delta:['デルタ・ブルース','blues'],jump:['ジャンプ・ブルース','blues'],rnb:['R&B','blues'],chicago:['シカゴ・ブルース','blues'],
@@ -243,82 +345,515 @@ const CAP={1920:'南部のブルースと、ニューオーリンズのジャズ
   1990:'ヒップホップの黄金時代と、生演奏の質感に戻るネオソウル。',
   2000:'70年代ソウルの手触りと、ヒップホップのビートの融合。',
   2010:'ジャンルの境界が溶け、100年分の系譜を素材にする時代。'};
+const KIND={album:'アルバム',single:'シングル・EP',compilation:'コンピレーション'};
 
+/* ============ 小道具 ============ */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const fmt=ms=>{const s=Math.max(0,Math.floor((ms||0)/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+// 端末のブラウザにだけ残す設定（ログイン情報、照合結果、作成済みプレイリスト）。読めない環境でも動くようにする
+const S={get(k,d){try{const v=localStorage.getItem('mr.'+k);return v==null?d:JSON.parse(v);}catch(e){return d;}},
+  set(k,v){try{localStorage.setItem('mr.'+k,JSON.stringify(v));}catch(e){}},
+  del(k){try{localStorage.removeItem('mr.'+k);}catch(e){}}};
+function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('on'),3600);}
+const ICON={
+  play:'<path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/>',
+  pause:'<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>',
+  heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>',
+  heartOn:'<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>',
+  album:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/></svg>'
+};
+const bigArt=(u,px)=>(u||'').replace(/\d+x\d+bb/,(px||600)+'x'+(px||600)+'bb');
+const yearOf=d=>(d||'').slice(0,4);
+// 表記ゆれを吸収して曲名・アーティスト名を比べる
+const norm=s=>String(s||'').toLowerCase().replace(/\(.*?\)|\[.*?\]/g,' ').replace(/[’']/g,'').replace(/&/g,' and ')
+  .replace(/[^a-z0-9 ]/g,' ').replace(/\b(pt|part)\s*\d+\b/g,' ').replace(/\b(remaster(ed)?|mono|stereo|version)\b/g,' ').replace(/\s+/g,' ').trim().replace(/^the /,'');
+
+/* ============ Spotify ログイン（PKCE。秘密鍵を持たずにブラウザだけで完結する方式） ============ */
+const spEnabled=()=>!!CLIENT_ID;
+const loggedIn=()=>spEnabled()&&!!S.get('tok');
+function randStr(n){const c='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';const a=new Uint8Array(n);crypto.getRandomValues(a);return Array.from(a,x=>c[x%c.length]).join('');}
+const b64url=buf=>btoa(String.fromCharCode.apply(null,new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+async function login(){
+  const v=randStr(64),st=randStr(16);S.set('pkce',v);S.set('state',st);S.set('ret',location.hash||'');
+  const ch=b64url(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)));
+  location.href='https://accounts.spotify.com/authorize?'+new URLSearchParams({response_type:'code',client_id:CLIENT_ID,scope:SCOPES,redirect_uri:REDIRECT,code_challenge_method:'S256',code_challenge:ch,state:st});
+}
+function saveTok(j){const old=S.get('tok',{})||{};S.set('tok',{a:j.access_token,r:j.refresh_token||old.r,e:Date.now()+((j.expires_in||3600)-60)*1000});}
+async function tokenReq(params){
+  const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(params)});
+  if(!r.ok)throw new Error('token '+r.status);return r.json();
+}
+async function finishLogin(){
+  const p=new URLSearchParams(location.search);
+  if(!p.has('code')&&!p.has('error'))return;
+  const ret=S.get('ret','');history.replaceState(null,'',REDIRECT+ret);
+  if(p.get('error')){toast('Spotifyへのログインが取り消されました');return;}
+  if(p.get('state')!==S.get('state')){toast('ログインの確認に失敗しました。もう一度ログインしてください');return;}
+  try{saveTok(await tokenReq({grant_type:'authorization_code',code:p.get('code'),redirect_uri:REDIRECT,client_id:CLIENT_ID,code_verifier:S.get('pkce')}));toast('Spotifyにログインしました');}
+  catch(e){toast('ログインに失敗しました。もう一度試してください');}
+  S.del('pkce');S.del('state');S.del('ret');
+}
+async function accessToken(force){
+  const t=S.get('tok');if(!t)return null;
+  if(!force&&Date.now()<t.e)return t.a;
+  try{saveTok(await tokenReq({grant_type:'refresh_token',refresh_token:t.r,client_id:CLIENT_ID}));return S.get('tok').a;}
+  catch(e){S.del('tok');renderAcct();toast('Spotifyのログインが切れました。もう一度ログインしてください');return null;}
+}
+async function api(path,opt){
+  opt=opt||{};let url=/^https?:/.test(path)?path:'https://api.spotify.com/v1'+path;
+  if(opt.query)url+=(url.includes('?')?'&':'?')+new URLSearchParams(opt.query);
+  let tk=await accessToken();if(!tk){const e=new Error('ログインしていません');e.status=401;throw e;}
+  for(let i=0;i<4;i++){
+    const r=await fetch(url,{method:opt.method||'GET',headers:Object.assign({Authorization:'Bearer '+tk},opt.body?{'Content-Type':'application/json'}:{}),body:opt.body?JSON.stringify(opt.body):undefined});
+    if(r.status===401&&i===0){tk=await accessToken(true);if(!tk)break;continue;}
+    if(r.status===429){await sleep(((+r.headers.get('Retry-After'))||2)*1000);continue;}
+    const txt=await r.text();let j=null;try{j=txt?JSON.parse(txt):null;}catch(e){}
+    if(!r.ok){const e=new Error((j&&j.error&&(j.error.message||j.error))||('HTTP '+r.status));e.status=r.status;throw e;}
+    return j;
+  }
+  throw new Error('Spotifyが混み合っています。少し待ってから試してください');
+}
+function logout(){['tok','me'].forEach(k=>S.del(k));if(P.sdk)try{P.sdk.disconnect();}catch(e){}location.href=REDIRECT;}
+
+/* ============ 年代順リストの42曲を Spotify の曲と照合する ============ */
+const tkey=t=>t.artist+'|'+t.title;
+let spmap=S.get('spmap',{})||{};
+async function searchOne(t){
+  const title=t.title.replace(/\(.*?\)/g,' ').replace(/,?\s*Pt\.\s*\d+/i,'').replace(/"/g,'').trim();
+  const artist=t.artist.replace(/^The /,'');
+  const j=await api('/search',{query:{q:title+' '+artist,type:'track',limit:10}});
+  const want=norm(t.artist),wt=norm(title);let best=null,bs=-1e9;
+  for(const c of (j.tracks&&j.tracks.items)||[]){
+    const an=c.artists.map(a=>norm(a.name));
+    if(!an.some(a=>a&&(a.includes(want)||want.includes(a))))continue;
+    const n=norm(c.name);let s=0;
+    if(n===wt)s+=12;else if(n.startsWith(wt))s+=9;else if(n.includes(wt))s+=5;else continue;
+    const raw=(c.name+' '+c.album.name).toLowerCase();
+    if(/\blive\b/.test(raw)&&!/live/i.test(t.album||''))s-=6;
+    if(/remix|karaoke|instrumental|re-recorded|cover/.test(raw))s-=8;
+    if(c.album.album_type==='compilation')s-=1;
+    const y=+yearOf(c.album.release_date)||9999;s-=Math.max(0,y-t.y)/25;
+    if(s>bs){bs=s;best=c;}
+  }
+  if(!best)return null;
+  return {uri:best.uri,name:best.name,album:best.album.id,albumName:best.album.name,img:(best.album.images[0]||{}).url||'',artist:best.artists[0].id,artistName:best.artists[0].name};
+}
+let mapping=null;
+function mapAll(){
+  if(mapping)return mapping;
+  mapping=(async()=>{
+    const todo=T.filter(t=>!(tkey(t) in spmap));let k=0;
+    for(const t of todo){
+      k++;if(todo.length>3)toast('Spotifyの曲と照合しています（'+k+'/'+todo.length+'）');
+      try{spmap[tkey(t)]=await searchOne(t);}catch(e){if(e.status===401)break;spmap[tkey(t)]=null;}
+      S.set('spmap',spmap);await sleep(120);
+    }
+    const miss=T.filter(t=>!spmap[tkey(t)]).length;
+    if(todo.length)toast(miss?('照合が終わりました。'+miss+'曲はSpotifyで見つからず、試聴で再生します'):'照合が終わりました');
+    if(view.name==='home')renderHome();
+    if(!P.state)show(cur);
+  })();
+  return mapping;
+}
+const spOf=i=>loggedIn()?spmap[tkey(T[i])]||null:null;
+
+/* ============ 再生（試聴・ページ内のSpotify・Spotifyアプリ遠隔） ============ */
 const au=$('au');
-let cur=0,auto=true;
+const P={sdk:null,sdkDev:null,sdkFail:'',remote:S.get('dev',null),state:null,items:null,poll:0};
+let queue=[],qi=0,auto=true,cur=0;   // 試聴モードの再生待ち
+// 再生リストの1曲分の共通形
+function tlItem(i){
+  const t=T[i],m=spOf(i);
+  return {i,title:m?m.name:t.track,artist:t.artist,album:m?m.albumName:t.album,cover:m&&m.img?m.img:t.cover,year:t.y,g:t.g,note:t.note,photo:t.photo,
+    preview:t.preview,uri:m&&m.uri,apple:t.apple,
+    albumRoute:m?'/album/sp/'+m.album:'/album/it/'+t.itAlbum,artistRoute:m?'/artist/sp/'+m.artist:'/artist/it/'+t.itArtist};
+}
+function albItem(A,k){
+  const t=A.tracks[k];
+  return {title:t.name,artist:t.artists||A.artist.name,album:A.name,cover:A.img,year:A.year,preview:t.preview,uri:t.uri,
+    albumRoute:'/album/'+A.src+'/'+A.id,artistRoute:'/artist/'+A.src+'/'+A.artist.id,photo:photoFor(A.src,A.artist.id),apple:t.apple};
+}
+const activeDev=()=>P.remote||P.sdkDev;
+const usingSdk=()=>!!P.sdkDev&&!P.remote;
+const spMode=()=>loggedIn()&&!!activeDev()&&!!P.state;
 
-// 年代ごとに並べる
+async function playItems(items,i,context){
+  const it=items[i];
+  if(loggedIn()&&it.uri&&activeDev()){
+    try{
+      if(usingSdk())try{await P.sdk.activateElement();}catch(e){}
+      au.pause();
+      const body=context?{context_uri:context,offset:{uri:it.uri}}:{uris:items.map(x=>x.uri).filter(Boolean),offset:{uri:it.uri}};
+      await api('/me/player/play',{method:'PUT',query:{device_id:activeDev()},body});
+      P.items=items;nowFromItem(it);
+      if(!usingSdk())startPoll();
+      return;
+    }catch(e){
+      if(e.status===404){toast('再生先が見つかりません。Spotifyアプリを開いて、再生先を選び直してください');openDev();return;}
+      toast(e.status===403?'フル再生にはSpotify Premiumが必要です。試聴で再生します':'Spotifyで再生できませんでした（'+e.message+'）。試聴で再生します');
+    }
+  }else if(loggedIn()&&it.uri){
+    toast(P.sdkFail||'ページ内の再生の準備中です。うまくいかない時は、再生先を選んでください');
+  }
+  // 試聴で再生
+  queue=items;qi=i;
+  if(!it.preview){toast('この曲には試聴音源がありません');return;}
+  nowFromItem(it);
+  if(au.src!==it.preview)au.src=it.preview;
+  au.play().catch(()=>{});
+}
+function playTimeline(i){
+  const run=()=>playItems(T.map((t,k)=>tlItem(k)),i);
+  if(loggedIn())mapAll().then(run); else run();
+}
+function toggle(){
+  if(spMode()){ if(usingSdk())P.sdk.togglePlay(); else api(P.state.paused?'/me/player/play':'/me/player/pause',{method:'PUT',query:{device_id:activeDev()}}).then(pollOnce).catch(e=>toast(e.message)); return; }
+  if(!au.src){playTimeline(cur);return;}
+  au.paused?au.play().catch(()=>{}):au.pause();
+}
+function next(){
+  if(spMode()){ if(usingSdk())P.sdk.nextTrack(); else api('/me/player/next',{method:'POST',query:{device_id:activeDev()}}).then(()=>setTimeout(pollOnce,500)).catch(()=>{}); return; }
+  if(queue.length&&qi<queue.length-1)playItems(queue,qi+1); else if(!queue.length)playTimeline(Math.min(T.length-1,cur+1));
+}
+function prev(){
+  if(spMode()){ if(usingSdk())P.sdk.previousTrack(); else api('/me/player/previous',{method:'POST',query:{device_id:activeDev()}}).then(()=>setTimeout(pollOnce,500)).catch(()=>{}); return; }
+  if(au.currentTime>3){au.currentTime=0;return;}
+  if(queue.length&&qi>0)playItems(queue,qi-1);
+}
+function seekTo(frac){
+  if(spMode()){const ms=Math.floor(frac*P.state.dur); if(usingSdk())P.sdk.seek(ms); else api('/me/player/seek',{method:'PUT',query:{position_ms:ms,device_id:activeDev()}}).then(pollOnce).catch(()=>{}); return;}
+  if(au.duration)au.currentTime=frac*au.duration;
+}
+
+// 試聴の状態
+au.addEventListener('play',()=>setPlaying(true));
+au.addEventListener('pause',()=>{ if(!spMode())setPlaying(false); });
+au.addEventListener('ended',()=>{ if(auto&&queue.length&&qi<queue.length-1)playItems(queue,qi+1); else setPlaying(false); });
+au.addEventListener('timeupdate',()=>{ if(spMode())return; setProg(au.currentTime*1000,(au.duration||30)*1000); });
+function setPlaying(on){$('app').classList.toggle('playing',on);$('app').classList.toggle('paused',!on);$('ppIcon').innerHTML=on?ICON.pause:ICON.play;$('ppBtn').setAttribute('aria-label',on?'一時停止':'再生');}
+function setProg(pos,dur){$('fill').style.width=(dur?Math.min(100,pos/dur*100):0)+'%';$('tCur').textContent=fmt(pos);$('tDur').textContent=fmt(dur);}
+
+// ページ内のSpotify再生（Web Playback SDK）
+function initSdk(){
+  window.onSpotifyWebPlaybackSDKReady=()=>{
+    const pl=new Spotify.Player({name:'100年を一周する',getOAuthToken:cb=>{accessToken().then(t=>{if(t)cb(t);});},volume:0.8});
+    pl.addListener('ready',({device_id})=>{P.sdk=pl;P.sdkDev=device_id;renderDev();});
+    pl.addListener('not_ready',()=>{P.sdkDev=null;renderDev();});
+    pl.addListener('player_state_changed',st=>{ if(!st||P.remote)return; const c=st.track_window.current_track;
+      onSpState({uri:c.uri,name:c.name,artists:c.artists.map(a=>({name:a.name,id:(a.uri||'').split(':').pop()})),album:{name:c.album.name,id:(c.album.uri||'').split(':').pop(),img:(c.album.images[0]||{}).url},pos:st.position,dur:st.duration,paused:st.paused,ts:Date.now()}); });
+    pl.addListener('initialization_error',()=>{P.sdkFail='このブラウザではページ内のフル再生が使えません。再生先にSpotifyアプリを選んでください';renderDev();});
+    pl.addListener('authentication_error',()=>{P.sdkFail='Spotifyの認証に失敗しました。ログインし直してください';renderDev();});
+    pl.addListener('account_error',()=>{P.sdkFail='ページ内のフル再生にはSpotify Premiumが必要です';renderDev();});
+    pl.addListener('autoplay_failed',()=>toast('もう一度、再生ボタンを押してください'));
+    pl.connect();
+  };
+  const s=document.createElement('script');s.src='https://sdk.scdn.co/spotify-player.js';s.async=true;document.head.appendChild(s);
+}
+// Spotifyアプリを遠隔で操作している時は、状態を2秒ごとに取りに行く
+function startPoll(){clearInterval(P.poll);P.poll=setInterval(pollOnce,2000);pollOnce();}
+async function pollOnce(){
+  if(!P.remote)return;
+  try{const j=await api('/me/player');if(!j||!j.item)return;const c=j.item;
+    onSpState({uri:c.uri,name:c.name,artists:c.artists.map(a=>({name:a.name,id:a.id})),album:{name:c.album.name,id:c.album.id,img:(c.album.images[0]||{}).url},pos:j.progress_ms,dur:c.duration_ms,paused:!j.is_playing,ts:Date.now()});
+  }catch(e){}
+}
+function onSpState(s){
+  const prevUri=P.state&&P.state.uri;P.state=s;setPlaying(!s.paused);
+  if(s.uri!==prevUri){
+    // 年代順リストの曲なら解説つきで、それ以外はSpotifyの情報で表示する
+    const k=T.findIndex((t,i)=>{const m=spOf(i);return m&&m.uri===s.uri;});
+    if(k>=0)nowFromItem(tlItem(k));
+    else{const fromList=P.items&&P.items.find(x=>x.uri===s.uri);
+      nowFromItem(fromList||{title:s.name,artist:s.artists.map(a=>a.name).join(', '),album:s.album.name,cover:s.album.img,uri:s.uri,
+        albumRoute:'/album/sp/'+s.album.id,artistRoute:'/artist/sp/'+(s.artists[0]||{}).id,photo:null});}
+  }
+}
+setInterval(()=>{ if(spMode()){const s=P.state;const pos=s.paused?s.pos:Math.min(s.dur,s.pos+(Date.now()-s.ts));setProg(pos,s.dur);} },500);
+
+// 再生先の選択
+function renderDev(){
+  const on=loggedIn();$('devBtn').hidden=!on;$('mdevBtn').hidden=!on;$('appleLink').hidden=on;$('autoBtn').hidden=on;
+  if(!on)return;
+  $('devLabel').textContent=P.remote?S.get('devName','Spotifyアプリ'):(P.sdkDev?'このページで再生':(P.sdkFail?'再生先を選ぶ':'準備中…'));
+}
+async function openDev(){
+  $('devPanel').hidden=false;const ul=$('devList');ul.innerHTML='<li class="hintline">読み込み中…</li>';
+  let devs=[];try{const j=await api('/me/player/devices');devs=(j&&j.devices)||[];}catch(e){}
+  let h='';
+  if(P.sdkDev)h+='<li><button type="button" data-dev="" class="'+(!P.remote?'on':'')+'">このページで再生<span>ページ内</span></button></li>';
+  else if(P.sdkFail)h+='<li class="hintline">'+esc(P.sdkFail)+'</li>';
+  devs.filter(d=>d.id!==P.sdkDev).forEach(d=>{h+='<li><button type="button" data-dev="'+esc(d.id)+'" data-name="'+esc(d.name)+'" class="'+(P.remote===d.id?'on':'')+'">'+esc(d.name)+'<span>'+esc(d.type)+'</span></button></li>';});
+  if(!h)h='<li class="hintline">再生先が見つかりません。Spotifyアプリを開いてから「更新」を押してください。</li>';
+  ul.innerHTML=h;
+}
+$('devList').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-dev]');if(!b)return;const id=b.dataset.dev;
+  P.remote=id||null;S.set('dev',P.remote);S.set('devName',b.dataset.name||'');clearInterval(P.poll);
+  try{ if(usingSdk())try{await P.sdk.activateElement();}catch(err){} await api('/me/player',{method:'PUT',body:{device_ids:[id||P.sdkDev],play:!!(P.state&&!P.state.paused)}}); }catch(err){}
+  if(P.remote)startPoll();
+  renderDev();$('devPanel').hidden=true;toast(id?(b.dataset.name+' で再生します'):'このページで再生します');
+});
+$('devBtn').addEventListener('click',openDev);$('mdevBtn').addEventListener('click',openDev);
+$('devRefresh').addEventListener('click',openDev);$('devClose').addEventListener('click',()=>{$('devPanel').hidden=true;});
+
+/* ============ お気に入り・フォロー・プレイリスト ============ */
+const saved={};   // uri -> true/false
+async function checkSaved(uris){
+  uris=[...new Set(uris.filter(u=>u&&!(u in saved)))];
+  for(let k=0;k<uris.length;k+=40){const ch=uris.slice(k,k+40);
+    try{const r=await api('/me/library/contains',{query:{uris:ch.join(',')}});(r||[]).forEach((v,n)=>{saved[ch[n]]=!!v;});}catch(e){ch.forEach(u=>{saved[u]=false;});}
+  }
+  paintHearts();
+}
+async function toggleSaved(uri){
+  const on=!saved[uri];
+  try{await api('/me/library',{method:on?'PUT':'DELETE',query:{uris:uri}});saved[uri]=on;paintHearts();
+    const kind=uri.split(':')[1];
+    toast(kind==='artist'?(on?'Spotifyでフォローしました':'フォローを解除しました'):kind==='album'?(on?'アルバムをSpotifyのライブラリに保存しました':'ライブラリから外しました'):(on?'Spotifyのお気に入りに追加しました':'お気に入りから外しました'));
+  }catch(e){
+    if(uri.startsWith('spotify:artist:'))toast('このアプリからはフォローできませんでした。Spotifyの2026年の仕様変更で、新しいアプリには許可されていない可能性があります');
+    else toast('保存できませんでした（'+e.message+'）');
+  }
+}
+function heartHtml(uri,sm){ if(!loggedIn()||!uri)return ''; const on=!!saved[uri];
+  return '<button class="heart'+(sm?' sm':'')+(on?' on':'')+'" type="button" data-save="'+esc(uri)+'" aria-pressed="'+on+'" aria-label="'+(on?'お気に入りから外す':'お気に入りに追加')+'">'+(on?ICON.heartOn:ICON.heart)+'</button>'; }
+function paintHearts(){
+  document.querySelectorAll('[data-save]').forEach(b=>{const on=!!saved[b.dataset.save];b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);
+    if(b.classList.contains('heart'))b.innerHTML=on?ICON.heartOn:ICON.heart;
+    else b.textContent=b.dataset.save.startsWith('spotify:artist:')?(on?'フォロー中':'フォローする'):(on?'保存済み':'ライブラリに保存');});
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-save]');if(!b||!b.dataset.save)return;e.stopPropagation();toggleSaved(b.dataset.save);},true);
+
+async function makePlaylist(dec){
+  await mapAll();
+  const idx=T.map((t,i)=>i).filter(i=>dec==='all'||Math.floor(T[i].y/10)*10===+dec);
+  const uris=idx.map(i=>spOf(i)).filter(Boolean).map(m=>m.uri);
+  if(!uris.length){toast('Spotifyで見つかった曲がありません');return;}
+  const name=dec==='all'?'100年を一周する（全'+uris.length+'曲）':'100年を一周する：'+dec+'年代';
+  try{
+    const pl=await api('/me/playlists',{method:'POST',body:{name,public:false,description:'ブルースから現代まで、時代を変えた曲を古い順に。「100年を一周する」で作成'}});
+    await api('/playlists/'+pl.id+'/items',{method:'POST',body:{uris}});
+    const all=S.get('pls',{})||{};all[dec]={id:pl.id,url:(pl.external_urls||{}).spotify||''};S.set('pls',all);
+    toast('Spotifyにプレイリスト「'+name+'」を作りました（'+uris.length+'曲）');
+    if(view.name==='home')renderHome();
+  }catch(e){toast('プレイリストを作れませんでした（'+e.message+'）');}
+}
+
+/* ============ データ取得（ログイン時はSpotify、それ以外はiTunes） ============ */
+const memo=new Map();
+function cached(key,fn){if(memo.has(key))return memo.get(key);const p=fn().catch(e=>{memo.delete(key);throw e;});memo.set(key,p);return p;}
+const itj=url=>fetch(url).then(r=>{if(!r.ok)throw new Error('iTunes '+r.status);return r.json();});
+function photoFor(src,id){
+  const k=T.findIndex((t,i)=>src==='it'?String(t.itArtist)===String(id):(spOf(i)&&spOf(i).artist===id));
+  return k>=0?T[k].photo:null;
+}
+function getAlbum(src,id){return cached('al:'+src+':'+id,async()=>{
+  if(src==='it'){
+    const j=await itj('https://itunes.apple.com/lookup?id='+encodeURIComponent(id)+'&entity=song&country=US');
+    const col=j.results.find(r=>r.wrapperType==='collection');if(!col)throw new Error('アルバムが見つかりません');
+    const tr=j.results.filter(r=>r.wrapperType==='track'&&r.kind==='song').sort((a,b)=>(a.discNumber-b.discNumber)||(a.trackNumber-b.trackNumber));
+    const nm=col.collectionName||'';
+    return {src,id:String(id),name:nm.replace(/ - (Single|EP)$/,''),artist:{name:col.artistName,id:col.artistId},year:yearOf(col.releaseDate),img:bigArt(col.artworkUrl100),
+      type:/ - (Single|EP)$/.test(nm)?'single':(/various/i.test(col.artistName)?'compilation':'album'),
+      tracks:tr.map(t=>({name:t.trackName,artists:t.artistName!==col.artistName?t.artistName:'',dur:t.trackTimeMillis,preview:t.previewUrl,n:t.trackNumber,disc:t.discNumber,apple:t.trackViewUrl}))};
+  }
+  const a=await api('/albums/'+id);let items=a.tracks.items,nx=a.tracks.next;
+  while(nx){const j=await api(nx);items=items.concat(j.items);nx=j.next;}
+  const main=a.artists[0]||{};
+  return {src,id,uri:a.uri,name:a.name,artist:{name:main.name,id:main.id},year:yearOf(a.release_date),img:(a.images[0]||{}).url||'',type:a.album_type,
+    tracks:items.map(t=>{const names=t.artists.map(x=>x.name).join(', ');return {name:t.name,artists:names!==main.name?names:'',dur:t.duration_ms,uri:t.uri,n:t.track_number,disc:t.disc_number};})};
+});}
+function getArtist(src,id){return cached('ar:'+src+':'+id,async()=>{
+  if(src==='it'){
+    const j=await itj('https://itunes.apple.com/lookup?id='+encodeURIComponent(id)+'&entity=album&limit=200&country=US');
+    const ar=j.results.find(r=>r.wrapperType==='artist');const seen=new Set();
+    const albums=j.results.filter(r=>r.wrapperType==='collection').map(c=>{const nm=c.collectionName||'';
+      return {src,id:String(c.collectionId),name:nm.replace(/ - (Single|EP)$/,''),year:yearOf(c.releaseDate),img:bigArt(c.artworkUrl100,300),type:/ - (Single|EP)$/.test(nm)?'single':'album'};})
+      .filter(a=>{const k=norm(a.name)+a.type;if(seen.has(k))return false;seen.add(k);return true;});
+    return {src,id:String(id),name:ar?ar.artistName:'',img:photoFor('it',id),albums};
+  }
+  const ar=await api('/artists/'+id);let albums=[],url;
+  try{url='/artists/'+id+'/albums?include_groups=album,single,compilation&limit=50';while(url&&albums.length<300){const j=await api(url);albums=albums.concat(j.items);url=j.next;}}
+  catch(e){ if(e.status!==400)throw e; albums=[];url='/artists/'+id+'/albums?include_groups=album,single,compilation&limit=10';while(url&&albums.length<200){const j=await api(url);albums=albums.concat(j.items);url=j.next;} }
+  const seen=new Set();
+  albums=albums.map(a=>({src,id:a.id,name:a.name,year:yearOf(a.release_date),img:((a.images[1]||a.images[0])||{}).url||'',type:a.album_type}))
+    .filter(a=>{const k=norm(a.name)+a.type;if(seen.has(k))return false;seen.add(k);return true;});
+  return {src,id,uri:ar.uri,name:ar.name,img:((ar.images||[])[0]||{}).url||photoFor('sp',id),albums};
+});}
+
+/* ============ 画面（同じページの中で切り替える） ============ */
+const view={name:'home'};
 const decs=[];T.forEach((t,i)=>{const d=Math.floor(t.y/10)*10;let g=decs.find(x=>x.d===d);if(!g){g={d,items:[]};decs.push(g);}g.items.push(i);});
-const tag=t=>{const g=G[t.g]||[t.g,'blues'];return '<span class="tag" style="--c:var(--fam-'+g[1]+')"><i></i>'+esc(g[0])+'</span>';};
-const PLAY='<path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/>';
-const PAUSE='<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';
+const tagHtml=t=>{const g=G[t.g]||[t.g,'blues'];return '<span class="tag" style="--c:var(--fam-'+g[1]+')"><i></i>'+esc(g[0])+'</span>';};
+function setTop(on,crumb){$('topnav').hidden=!on;$('crumb').textContent=crumb||'';$('app').classList.toggle('home',!on);}
 
-$('decades').innerHTML=decs.map(g=>'<section class="decade" id="d'+g.d+'"><h3>'+g.d+'年代</h3><p class="cap">'+esc(CAP[g.d]||'')+'</p><ol class="list">'+
-  g.items.map(i=>{const t=T[i];return '<li class="row" data-i="'+i+'" tabindex="0" aria-label="'+esc(t.track+'、'+t.artist+'、'+t.y+'年')+'">'+
-    '<span class="n"><span class="num">'+(i+1)+'</span><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span></span>'+
-    '<img loading="lazy" src="'+esc(t.cover)+'" alt="">'+
-    '<span class="t"><b>'+esc(t.track)+'</b><span>'+esc(t.artist)+'</span></span>'+
-    '<span class="tg">'+tag(t)+'</span><span class="y">'+t.y+'</span></li>';}).join('')+'</ol></section>').join('');
-const decBtns=decs.map(g=>'<button type="button" data-d="'+g.d+'">'+g.d+'年代<small>'+g.items.length+'</small></button>').join('');
-$('dec').innerHTML=decBtns;
+function renderHome(){
+  view.name='home';view.data=null;setTop(false);
+  const pls=S.get('pls',{})||{};const sp=loggedIn();
+  $('view').innerHTML=(sp?'<div class="actions" style="padding-top:20px">'+plBtn('all',pls)+'</div>':'')+
+   decs.map(g=>'<section class="decade" id="d'+g.d+'"><div class="dhead"><h3>'+g.d+'年代</h3><div class="dact">'+
+    '<button class="pill" type="button" data-playdec="'+g.d+'">この年代を通して聴く</button>'+(sp?plBtn(g.d,pls):'')+'</div></div><p class="cap">'+esc(CAP[g.d]||'')+'</p><ol class="list">'+
+    g.items.map(i=>{const t=T[i],it=tlItem(i);return '<li class="row" data-i="'+i+'" tabindex="0" aria-label="'+esc(it.title+'、'+t.artist+'、'+t.y+'年')+'">'+
+      '<span class="n"><span class="num">'+(i+1)+'</span><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span></span>'+
+      '<img loading="lazy" src="'+esc(it.cover)+'" alt="">'+
+      '<span class="t"><b>'+esc(it.title)+'</b><span class="sub"><button type="button" class="link" data-go="'+esc(it.artistRoute)+'">'+esc(t.artist)+'</button></span></span>'+
+      '<span class="tg">'+tagHtml(t)+'</span><span class="y">'+t.y+'</span>'+
+      '<button class="iconbtn" type="button" data-go="'+esc(it.albumRoute)+'" aria-label="収録アルバムを見る" title="収録アルバムを見る">'+ICON.album+'</button></li>';}).join('')+'</ol></section>').join('');
+  markNowRow();
+}
+function plBtn(dec,pls){
+  const p=pls[dec];const label=dec==='all'?'全曲のプレイリストを作る':'プレイリストを作る';
+  if(p&&p.url)return '<a class="pill" href="'+esc(p.url)+'" target="_blank" rel="noopener">'+(dec==='all'?'全曲のプレイリスト':'プレイリスト')+'をSpotifyで開く</a><button class="pill" type="button" data-mkpl="'+dec+'">作り直す</button>';
+  return '<button class="pill'+(dec==='all'?' solid':'')+'" type="button" data-mkpl="'+dec+'">＋ '+label+'</button>';
+}
+
+async function renderAlbum(src,id){
+  view.name='album';view.src=src;view.id=id;view.data=null;setTop(true,'アルバム');
+  $('view').innerHTML='<p class="loading">アルバムを読み込んでいます…</p>';$('main').scrollTop=0;
+  let A;try{A=await getAlbum(src,id);}catch(e){$('view').innerHTML='<p class="empty">アルバムを読み込めませんでした（'+esc(e.message)+'）</p>';return;}
+  if(view.name!=='album'||view.id!==id)return;
+  view.data=A;$('crumb').textContent=A.artist.name+' ・ '+A.name;
+  const total=A.tracks.reduce((s,t)=>s+(t.dur||0),0);const multi=new Set(A.tracks.map(t=>t.disc)).size>1;let lastDisc=null;
+  $('view').innerHTML='<header class="ahead"><img class="art" src="'+esc(A.img)+'" alt=""><div class="info"><span class="kind">'+esc(KIND[A.type]||'アルバム')+'</span><h2>'+esc(A.name)+'</h2>'+
+    '<div class="by"><button class="link" type="button" data-go="/artist/'+src+'/'+esc(A.artist.id)+'">'+esc(A.artist.name)+'</button><span>'+esc(A.year)+'</span><span>'+A.tracks.length+'曲・'+Math.round(total/60000)+'分</span></div>'+
+    '<div class="actions"><button class="big" type="button" data-playalb="0"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'+ICON.play+'</svg>アルバムを再生</button>'+
+    (loggedIn()&&A.uri?'<button class="pill" type="button" data-save="'+esc(A.uri)+'">ライブラリに保存</button>':'')+'</div>'+
+    (src==='it'?'<p class="hintline">試聴は各30秒です。'+(spEnabled()?'Spotifyにログインすると、フルで再生できます。':'')+'</p>':'')+'</div></header>'+
+    '<ol class="list">'+A.tracks.map((t,k)=>{let d='';if(multi&&t.disc!==lastDisc){lastDisc=t.disc;d='<li class="disc">ディスク '+t.disc+'</li>';}
+      const can=!!(t.uri||t.preview);
+      return d+'<li class="row trk'+(can?'':' nopv')+'" data-k="'+k+'" tabindex="0"><span class="n"><span class="num">'+t.n+'</span><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span></span>'+
+        '<span class="t"><b>'+esc(t.name)+'</b>'+(t.artists?'<span class="sub">'+esc(t.artists)+'</span>':'')+'</span><span class="d">'+fmt(t.dur)+'</span>'+(heartHtml(t.uri,true)||'<span></span>')+'</li>';}).join('')+'</ol>'+
+    '<div class="tonext"><button class="pill" type="button" data-go="/artist/'+src+'/'+esc(A.artist.id)+'">'+esc(A.artist.name)+' のほかの作品を見る</button></div>';
+  markNowRow();
+  if(loggedIn())checkSaved(A.tracks.map(t=>t.uri).concat(A.uri?[A.uri]:[]));
+}
+async function renderArtist(src,id){
+  view.name='artist';view.src=src;view.id=id;view.data=null;setTop(true,'アーティスト');
+  $('view').innerHTML='<p class="loading">ディスコグラフィを読み込んでいます…</p>';$('main').scrollTop=0;
+  let R;try{R=await getArtist(src,id);}catch(e){$('view').innerHTML='<p class="empty">読み込めませんでした（'+esc(e.message)+'）</p>';return;}
+  if(view.name!=='artist'||view.id!==id)return;
+  $('crumb').textContent=R.name;
+  const groups=['album','single','compilation'].map(k=>({k,items:R.albums.filter(a=>a.type===k).sort((a,b)=>(a.year||'9999').localeCompare(b.year||'9999'))})).filter(g=>g.items.length);
+  const inList=T.map((t,i)=>i).filter(i=>src==='it'?String(T[i].itArtist)===String(id):(spOf(i)&&spOf(i).artist===id));
+  $('view').innerHTML='<header class="ahead"><img class="art round" src="'+esc(R.img||'')+'" alt=""'+(R.img?'':' style="visibility:hidden"')+'><div class="info"><span class="kind">アーティスト</span><h2>'+esc(R.name)+'</h2>'+
+    '<div class="actions">'+(loggedIn()&&R.uri?'<button class="pill" type="button" data-save="'+esc(R.uri)+'">フォローする</button>':'')+
+    inList.map(i=>'<button class="pill" type="button" data-tl="'+i+'">年代順リストの「'+esc(tlItem(i).title)+'」</button>').join('')+'</div>'+
+    (src==='it'?'<p class="hintline">iTunesの登録情報のため、後年の編集盤も多く含まれます。古い順に並べています。</p>':'<p class="hintline">古い順に並べています。</p>')+'</div></header>'+
+    (groups.length?groups.map(g=>'<section class="sec"><h3>'+esc(KIND[g.k])+'<small>'+g.items.length+'</small></h3><div class="grid">'+
+      g.items.map(a=>'<button class="card" type="button" data-go="/album/'+src+'/'+esc(a.id)+'"><img loading="lazy" src="'+esc(a.img)+'" alt=""><b>'+esc(a.name)+'</b><span>'+esc(a.year)+'</span></button>').join('')+'</div></section>').join('')
+     :'<p class="empty">作品が見つかりませんでした。</p>');
+  if(loggedIn()&&R.uri)checkSaved([R.uri]);
+}
+function route(){
+  const m=location.hash.slice(1).match(/^\/(album|artist)\/(it|sp)\/([^/]+)$/);
+  if(m&&m[2]==='sp'&&!loggedIn()){location.hash='';return;}
+  if(!m)return renderHome();
+  return m[1]==='album'?renderAlbum(m[2],decodeURIComponent(m[3])):renderArtist(m[2],decodeURIComponent(m[3]));
+}
+// このページの中で何回画面を進めたか。「戻る」はその分だけ履歴を戻り、それ以上はトップへ
+let navDepth=0;
+const go=r=>{ if(!r){navDepth=0;if(location.hash){location.hash='';}else route();return;} if(location.hash==='#'+r){route();return;} navDepth++;location.hash=r; };
+window.addEventListener('hashchange',route);
+$('backBtn').addEventListener('click',()=>{ if(navDepth>0){navDepth--;history.back();} else go(''); });
+document.addEventListener('click',e=>{ if(e.target.closest('[data-home]'))go(''); });
+
+/* ============ 再生中の表示 ============ */
+let nowItem=null;
+function nowFromItem(it){
+  nowItem=it;
+  if(it.i!=null)cur=it.i;
+  $('nowCover').src=it.cover||'';$('nowCover').alt=(it.album||'')+' のジャケット';
+  $('nowYear').textContent=it.year||'';
+  const g=it.g&&G[it.g];$('nowTag').innerHTML=g?'<i></i>'+esc(g[0]):'';$('nowTag').style.setProperty('--c','var(--fam-'+(g?g[1]:'blues')+')');
+  $('nowPos').textContent=it.i!=null?(it.i+1)+' / '+T.length:'';
+  $('nowTitle').textContent=it.title||'';
+  $('nowArtist').textContent=it.artist||'';$('nowArtist').dataset.go=it.artistRoute||'';
+  $('nowAlbum').textContent=it.album?'・ '+it.album:'';$('nowAlbum').dataset.go=it.albumRoute||'';
+  const ph=it.photo;$('nowPhoto').style.visibility=ph?'visible':'hidden';if(ph){$('nowPhoto').src=ph;$('nowPhoto').alt=it.artist+' の写真';}
+  $('acard').hidden=!ph;if(ph){$('nowPhotoBig').src=ph;$('nowPhotoBig').alt=it.artist+' の写真';}$('acardName').textContent=it.artist||'';$('acardBtn').dataset.go=it.artistRoute||'';
+  if(!ph&&loggedIn()&&it.artistRoute&&it.artistRoute.startsWith('/artist/sp/')){const aid=it.artistRoute.split('/').pop();
+    getArtist('sp',aid).then(R=>{ if(nowItem===it&&R.img){$('acard').hidden=false;$('nowPhotoBig').src=R.img;$('nowPhoto').src=R.img;$('nowPhoto').style.visibility='visible';} }).catch(()=>{});}
+  $('nowNote').textContent=it.note||'';$('nowNote').hidden=!it.note;
+  $('nowActions').hidden=it.i==null;
+  $('startLabel').textContent=!it.i?'最初から通して聴く':'ここから通して聴く';
+  const like=loggedIn()&&!!it.uri;['nowLike','barLike'].forEach(id=>{const b=$(id);b.hidden=!like;b.dataset.save=like?it.uri:'';});
+  if(like)checkSaved([it.uri]);paintHearts();
+  $('barCover').src=it.cover||'';$('barTitle').textContent=it.title||'';$('barArtist').textContent=(it.artist||'')+(it.year?' ・ '+it.year:'');
+  if(it.apple)$('appleLink').href=it.apple;
+  const d=it.year?Math.floor(it.year/10)*10:null;
+  document.querySelectorAll('[data-d]').forEach(b=>b.classList.toggle('on',+b.dataset.d===d));
+  markNowRow();
+}
+function markNowRow(){
+  document.querySelectorAll('.row.on').forEach(r=>r.classList.remove('on'));
+  if(!nowItem)return;
+  if(view.name==='home'&&nowItem.i!=null){const r=document.querySelector('.row[data-i="'+nowItem.i+'"]');if(r)r.classList.add('on');}
+  if(view.name==='album'&&view.data){const k=view.data.tracks.findIndex(t=>(nowItem.uri&&t.uri===nowItem.uri)||(nowItem.preview&&t.preview===nowItem.preview));
+    if(k>=0){const r=document.querySelector('.row[data-k="'+k+'"]');if(r)r.classList.add('on');}}
+}
+function show(i){nowFromItem(tlItem(i));}
+
+/* ============ 操作 ============ */
+$('view').addEventListener('click',e=>{
+  if(e.target.closest('[data-go],[data-save]'))return;
+  const pd=e.target.closest('[data-playdec]');if(pd){const g=decs.find(x=>x.d===+pd.dataset.playdec);playTimeline(g.items[0]);return;}
+  const mk=e.target.closest('[data-mkpl]');if(mk){mk.disabled=true;makePlaylist(mk.dataset.mkpl).finally(()=>{mk.disabled=false;});return;}
+  const tl=e.target.closest('[data-tl]');if(tl){const i=+tl.dataset.tl;go('');playTimeline(i);return;}
+  const pa=e.target.closest('[data-playalb]');if(pa&&view.data){const A=view.data;const k=A.tracks.findIndex(t=>t.uri||t.preview);if(k>=0)playItems(A.tracks.map((t,n)=>albItem(A,n)),k,A.uri);return;}
+  const row=e.target.closest('.row');if(!row)return;
+  if(row.dataset.i!=null){const i=+row.dataset.i;if(nowItem&&nowItem.i===i&&(au.src||P.state))toggle();else playTimeline(i);return;}
+  if(row.dataset.k!=null&&view.data&&!row.classList.contains('nopv')){const A=view.data;playItems(A.tracks.map((t,n)=>albItem(A,n)),+row.dataset.k,A.uri);}
+});
+$('view').addEventListener('keydown',e=>{if(e.key!=='Enter')return;const r=e.target.closest('.row');if(r&&e.target===r){e.preventDefault();r.click();}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(!b||!b.dataset.go)return;e.preventDefault();e.stopPropagation();go(b.dataset.go);});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(!b)return;const jump=()=>{const s=$('d'+b.dataset.d);if(s)s.scrollIntoView({block:'start',behavior:'smooth'});};if(view.name!=='home'){go('');setTimeout(jump,80);}else jump();});
+$('startBtn').addEventListener('click',()=>playTimeline(cur));
+$('ppBtn').addEventListener('click',toggle);
+$('prevBtn').addEventListener('click',prev);
+$('nextBtn').addEventListener('click',next);
+$('autoBtn').addEventListener('click',()=>{auto=!auto;$('autoBtn').classList.toggle('on',auto);$('autoBtn').setAttribute('aria-pressed',auto);});
+$('seek').addEventListener('click',e=>{const r=e.currentTarget.getBoundingClientRect();seekTo((e.clientX-r.left)/r.width);});
+$('seek').addEventListener('keydown',e=>{ if(e.key==='ArrowRight'&&au.duration)au.currentTime=Math.min(au.duration,au.currentTime+5); if(e.key==='ArrowLeft'&&au.duration)au.currentTime=Math.max(0,au.currentTime-5); });
+document.addEventListener('keydown',e=>{ if(e.target.closest('input,textarea'))return; if(e.code==='Space'&&!e.target.closest('button,.row,a')){e.preventDefault();toggle();} });
+
+/* ============ アカウント表示 ============ */
+function renderAcct(){
+  if(!spEnabled()){$('acct').hidden=true;$('macct').innerHTML='';renderDev();return;}
+  $('acct').hidden=false;
+  if(!loggedIn()){
+    $('acct').innerHTML='<span>Spotifyにログインすると、フル再生・お気に入り・プレイリスト作成が使えます。</span><button class="pill solid" type="button" data-login>Spotifyにログイン</button>';
+    $('macct').innerHTML='<button class="pill solid" type="button" data-login>Spotifyにログイン</button>';
+  }else{
+    const me=S.get('me');const name=me?esc(me.display_name||me.id):'ログイン中';
+    $('acct').innerHTML='<b>'+name+'</b><span>Spotifyでフル再生</span><button class="pill" type="button" data-logout>ログアウト</button>';
+    $('macct').innerHTML='<button class="pill" type="button" data-logout>ログアウト</button>';
+  }
+  renderDev();
+}
+document.addEventListener('click',e=>{ if(e.target.closest('[data-login]'))login(); if(e.target.closest('[data-logout]'))logout(); });
+
+/* ============ 起動 ============ */
+const np=document.querySelector('.now'),wrap=$('wrap'),app=$('app'),mq=matchMedia('(min-width:1100px)');
+function place(){ if(mq.matches){app.classList.add('wide');app.insertBefore(np,document.querySelector('.bar'));} else {app.classList.remove('wide');wrap.prepend(np);} }
+mq.addEventListener('change',place);place();
+$('dec').innerHTML=decs.map(g=>'<button type="button" data-d="'+g.d+'">'+g.d+'年代<small>'+g.items.length+'</small></button>').join('');
 $('decbar').innerHTML=decs.map(g=>'<button type="button" data-d="'+g.d+'">'+g.d+'s</button>').join('');
 $('sum').textContent=T.length+'曲 ・ 約'+Math.round(T.length*30/60)+'分（各30秒の試聴）';
 $('credits').innerHTML=T.filter((t,i,a)=>a.findIndex(x=>x.wiki===t.wiki)===i).map(t=>'<li><a href="'+esc(t.wikiPage)+'" target="_blank" rel="noopener">'+esc(t.artist)+'</a></li>').join('');
 
-function show(i){
-  const t=T[i];cur=i;
-  $('nowCover').src=t.cover;$('nowCover').alt=t.album+' のジャケット';
-  $('nowYear').textContent=t.y;$('nowTag').outerHTML='<span class="tag" id="nowTag" style="--c:var(--fam-'+(G[t.g]||[0,'blues'])[1]+')"><i></i>'+esc((G[t.g]||[t.g])[0])+'</span>';
-  $('nowPos').textContent=(i+1)+' / '+T.length;
-  $('nowTitle').textContent=t.track;
-  $('nowArtist').textContent=t.artist;$('nowAlbum').textContent='・ '+t.album;
-  const ph=$('nowPhoto');ph.style.visibility=t.photo?'visible':'hidden';if(t.photo){ph.src=t.photo;ph.alt=t.artist+' の写真';}
-  $('nowNote').textContent=t.note;
-  const big=$('nowPhotoBig');$('acard').hidden=!t.photo;if(t.photo){big.src=t.photo;big.alt=t.artist+' の写真';}$('acardName').textContent=t.artist;
-  $('barCover').src=t.cover;$('barTitle').textContent=t.track;$('barArtist').textContent=t.artist+' ・ '+t.y;
-  $('appleLink').href=t.apple;
-  document.querySelectorAll('.row.on').forEach(r=>r.classList.remove('on'));
-  const row=document.querySelector('.row[data-i="'+i+'"]');if(row)row.classList.add('on');
-  const d=Math.floor(t.y/10)*10;
-  document.querySelectorAll('[data-d]').forEach(b=>b.classList.toggle('on',+b.dataset.d===d));
-  $('startLabel').textContent=i===0?'最初から通して聴く':'ここから通して聴く';
-}
-function play(i){
-  if(i<0||i>=T.length)return;
-  if(i!==cur||!au.src){show(i);au.src=T[i].preview;}
-  au.play().catch(()=>{});
-  const row=document.querySelector('.row[data-i="'+i+'"]');
-  if(row){const r=row.getBoundingClientRect(),m=$('main').getBoundingClientRect();if(r.top<m.top||r.bottom>m.bottom-8)row.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}
-}
-function toggle(){ if(!au.src){play(cur);return;} au.paused?au.play().catch(()=>{}):au.pause(); }
-
-au.addEventListener('play',()=>{$('app').classList.add('playing');$('app').classList.remove('paused');$('ppIcon').innerHTML=PAUSE;$('ppBtn').setAttribute('aria-label','一時停止');});
-au.addEventListener('pause',()=>{$('app').classList.add('paused');$('ppIcon').innerHTML=PLAY;$('ppBtn').setAttribute('aria-label','再生');});
-au.addEventListener('ended',()=>{ if(auto&&cur<T.length-1)play(cur+1); else{$('app').classList.remove('playing');} });
-const fmt=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
-au.addEventListener('timeupdate',()=>{const d=au.duration||30;$('fill').style.width=(au.currentTime/d*100)+'%';$('tCur').textContent=fmt(au.currentTime);$('tDur').textContent=fmt(d);});
-
-document.getElementById('decades').addEventListener('click',e=>{const r=e.target.closest('.row');if(!r)return;const i=+r.dataset.i;if(i===cur&&au.src)toggle();else play(i);});
-document.getElementById('decades').addEventListener('keydown',e=>{if(e.key!=='Enter')return;const r=e.target.closest('.row');if(r){e.preventDefault();play(+r.dataset.i);}});
-$('startBtn').addEventListener('click',()=>play(cur));
-$('ppBtn').addEventListener('click',toggle);
-$('prevBtn').addEventListener('click',()=>{ if(au.currentTime>3){au.currentTime=0;} else play(Math.max(0,cur-1)); });
-$('nextBtn').addEventListener('click',()=>play(Math.min(T.length-1,cur+1)));
-$('autoBtn').addEventListener('click',()=>{auto=!auto;$('autoBtn').classList.toggle('on',auto);$('autoBtn').setAttribute('aria-pressed',auto);});
-$('seek').addEventListener('click',e=>{const r=e.currentTarget.getBoundingClientRect();if(au.duration)au.currentTime=(e.clientX-r.left)/r.width*au.duration;});
-$('seek').addEventListener('keydown',e=>{if(!au.duration)return;if(e.key==='ArrowRight')au.currentTime=Math.min(au.duration,au.currentTime+5);if(e.key==='ArrowLeft')au.currentTime=Math.max(0,au.currentTime-5);});
-document.addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(!b)return;const s=$('d'+b.dataset.d);if(s)s.scrollIntoView({block:'start',behavior:'smooth'});});
-document.addEventListener('keydown',e=>{
-  if(e.target.closest('input,textarea'))return;
-  if(e.code==='Space'&&!e.target.closest('button,.row')){e.preventDefault();toggle();}
-});
-
-// 広い画面では「再生中」を右の列へ、狭い画面ではリストの上へ移す
-const np=document.querySelector(".now"),wrap=document.querySelector(".wrap"),app=$("app"),mq=matchMedia("(min-width:1100px)");
-function place(){ if(mq.matches){app.classList.add("wide");app.insertBefore(np,document.querySelector(".bar"));} else {app.classList.remove("wide");wrap.prepend(np);} }
-mq.addEventListener("change",place);place();
-show(0);
+(async function boot(){
+  if(spEnabled())await finishLogin();
+  renderAcct();
+  if(loggedIn()){
+    $('sum').textContent=T.length+'曲 ・ Spotifyでフル再生';
+    api('/me').then(me=>{S.set('me',{id:me.id,display_name:me.display_name,product:me.product});renderAcct();
+      if(me.product&&me.product!=='premium')toast('このアカウントはPremiumではないため、フル再生はできません。お気に入りやプレイリストは使えます');}).catch(()=>{});
+    initSdk();mapAll();
+    if(P.remote)startPoll();
+  }
+  show(0);route();
+})();
 })();
 </script>
